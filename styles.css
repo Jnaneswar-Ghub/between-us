@@ -315,3 +315,272 @@ html, body {
   background: rgba(45, 38, 32, 0.62);
   border: 1px solid rgba(196,166,138,0.18);
 }
+
+/* ============================================================
+   RESPONSIVE STUDIO LAYOUT & DRAWERS
+   ============================================================ */
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--ivory);
+  color: var(--charcoal);
+  position: relative;
+}
+
+.material-panel {
+  width: 290px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--ivory);
+  border-right: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+}
+
+.controls-panel {
+  width: 290px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--cream);
+  border-left: 1px solid var(--hairline);
+}
+
+@media (min-width: 1201px) {
+  .material-panel,
+  .controls-panel {
+    animation: rise 0.4s ease both;
+  }
+}
+
+.workspace-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+  height: 100%;
+}
+
+.panel-backdrop {
+  display: none;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+.mobile-toggle-btn {
+  display: none !important;
+}
+
+/* ============================================================
+   PAPER DYNAMIC MARGINS (CSS VARIABLE POWERED)
+   ============================================================ */
+.paper-content {
+  --m-px: 70px;
+  --m-l: 70px;
+  --m-r: 70px;
+  --m-bottom: 90px;
+  padding: var(--m-px) var(--m-r) var(--m-bottom) var(--m-l);
+  min-height: 720px;
+}
+
+.paper-content[data-margins="narrow"] {
+  --m-px: 48px;
+  --m-l: 48px;
+  --m-r: 48px;
+  --m-bottom: 70px;
+}
+.paper-content[data-margins="normal"] {
+  --m-px: 70px;
+  --m-l: 70px;
+  --m-r: 70px;
+  --m-bottom: 90px;
+}
+.paper-content[data-margins="wide"] {
+  --m-px: 104px;
+  --m-l: 104px;
+  --m-r: 104px;
+  --m-bottom: 120px;
+}
+.paper-content[data-margins="left"] {
+  --m-px: 70px;
+  --m-l: 120px;
+  --m-r: 52px;
+  --m-bottom: 90px;
+}
+.paper-content[data-margins="right"] {
+  --m-px: 70px;
+  --m-l: 52px;
+  --m-r: 120px;
+  --m-bottom: 90px;
+}
+
+.desktop-only {
+  display: inline !important;
+}
+
+.mobile-only-inline {
+  display: none !important;
+}
+
+.desk-centering-frame {
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 56px 40px 130px;
+}
+
+/* ============================================================
+   MEDIA QUERIES FOR TABLET & MOBILE VIEWPORTS
+   ============================================================ */
+@media (max-width: 1200px) {
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .mobile-toggle-btn {
+    display: inline-flex !important;
+  }
+
+  /* Backdrop Overlay */
+  .panel-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 22, 16, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 90;
+    animation: fadeIn 0.25s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Left Panel (Materials Drawer) */
+  .material-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    width: 290px;
+    max-width: 85%;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    border-right: 1px solid var(--hairline);
+  }
+
+  .left-open .material-panel {
+    transform: translateX(0);
+    box-shadow: 0 0 24px rgba(94, 74, 48, 0.18);
+  }
+
+  /* Right Panel (Controls Drawer) */
+  .controls-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    width: 290px;
+    max-width: 85%;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    border-left: 1px solid var(--hairline);
+  }
+
+  .right-open .controls-panel {
+    transform: translateX(0);
+    box-shadow: 0 0 24px rgba(94, 74, 48, 0.18);
+  }
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only-inline {
+    display: inline-block !important;
+  }
+
+  /* Desk canvas container margin adjustments */
+  .desk {
+    padding: 0 !important;
+  }
+
+  .desk-centering-frame {
+    padding: 16px 12px 100px !important;
+  }
+
+  /* Scaled Paper Margins for Mobile (so text doesn't squeeze) */
+  .paper-content {
+    min-height: 480px;
+  }
+  .paper-content[data-margins="narrow"] {
+    --m-px: 24px;
+    --m-l: 16px;
+    --m-r: 16px;
+    --m-bottom: 40px;
+  }
+  .paper-content[data-margins="normal"] {
+    --m-px: 30px;
+    --m-l: 20px;
+    --m-r: 20px;
+    --m-bottom: 50px;
+  }
+  .paper-content[data-margins="wide"] {
+    --m-px: 36px;
+    --m-l: 24px;
+    --m-r: 24px;
+    --m-bottom: 60px;
+  }
+  .paper-content[data-margins="left"] {
+    --m-px: 30px;
+    --m-l: 30px;
+    --m-r: 16px;
+    --m-bottom: 50px;
+  }
+  .paper-content[data-margins="right"] {
+    --m-px: 30px;
+    --m-l: 16px;
+    --m-r: 30px;
+    --m-bottom: 50px;
+  }
+
+  /* UI Spacing / Scale Reductions */
+  .save-draft-btn span, 
+  .save-draft-btn {
+    font-size: 12px !important;
+  }
+
+  .preview-btn {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+  }
+
+  /* Make floating toolbar smaller on mobile */
+  .frost {
+    bottom: 16px !important;
+    width: 92% !important;
+    max-width: 330px !important;
+    padding: 5px 6px !important;
+  }
+
+  .frost button {
+    padding: 7px !important;
+  }
+}
+

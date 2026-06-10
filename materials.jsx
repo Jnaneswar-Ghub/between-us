@@ -143,7 +143,10 @@ function CoverCard({ c, selected, onClick }) {
 }
 
 function MaterialPanel(props) {
-  const { selPaper, setSelPaper, selEnv, setSelEnv, selSeal, setSelSeal, selCover, setSelCover } = props;
+  const {
+    selPaper, setSelPaper, selEnv, setSelEnv, selSeal, setSelSeal, selCover, setSelCover,
+    onNew, theme, setTheme, onClose,
+  } = props;
   const [open, setOpen] = useStateM({ paper: true, envelope: true, seal: false, cover: false });
   const [paperCat, setPaperCat] = useStateM("All");
   const toggle = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
@@ -151,10 +154,62 @@ function MaterialPanel(props) {
   const papers = paperCat === "All" ? PAPERS : PAPERS.filter((p) => p.cat === paperCat);
 
   return (
-    <div className="rise" style={{
-      width: 280, flexShrink: 0, height: "100%", overflowY: "auto",
-      background: "var(--ivory)", borderRight: "1px solid var(--hairline)",
-    }}>
+    <div className="material-panel">
+      {/* Brand Header & Quick Actions */}
+      <div style={{ padding: "20px 20px 14px", borderBottom: "1px solid var(--hairline)", background: "var(--ivory)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <svg width="24" height="16" viewBox="0 0 32 32" style={{ flexShrink: 0 }}>
+              <rect x="2" y="6" width="28" height="20" rx="3" fill="rgba(139,115,85,0.06)" stroke="var(--rose)" strokeWidth="1.8"/>
+              <path d="M2 8l14 10L30 8" fill="none" stroke="var(--rose)" strokeWidth="1.8" strokeLinejoin="round"/>
+              <circle cx="16" cy="18" r="3.5" fill="#C0492E" stroke="rgba(0,0,0,0.1)" strokeWidth="0.5"/>
+            </svg>
+            <div className="script" style={{ fontSize: 24, lineHeight: 1, color: "var(--charcoal)", fontWeight: 600 }}>
+              Between Us
+            </div>
+          </div>
+          {/* Close button for mobile */}
+          <button className="mobile-only t200" onClick={onClose}
+            style={{
+              background: "transparent", border: "none", cursor: "pointer", color: "var(--brown)",
+              display: "flex", padding: 4
+            }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        {/* Action Row */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="t200 lift"
+            onClick={onNew}
+            style={{
+              flex: 1,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              padding: "10px 12px",
+              background: "var(--brown)", color: "#F8F2E9",
+              border: "none", borderRadius: 8, cursor: "pointer",
+              fontSize: 13, fontWeight: 600, letterSpacing: "0.01em",
+              boxShadow: "0 2px 6px rgba(139,115,85,0.22)",
+            }}
+          >
+            <IconPlus size={14} sw={2.2} /> New Letter
+          </button>
+          
+          <button onClick={() => setTheme(theme === "day" ? "evening" : "day")}
+            className="t200 tip" data-tip={theme === "day" ? "Evening theme" : "Daylight theme"}
+            style={{
+              width: 38, display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(255,255,255,0.4)", border: "1px solid var(--hairline)",
+              borderRadius: 8, cursor: "pointer", color: "var(--brown)",
+            }}>
+            {theme === "day" ? <IconMoon size={16} /> : <IconSun size={16} />}
+          </button>
+        </div>
+      </div>
       {/* PAPER */}
       <Section id="paper" title="Paper" count={PAPERS.length} open={open.paper} onToggle={() => toggle("paper")}>
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 12 }}>

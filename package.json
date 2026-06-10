@@ -1,0 +1,9 @@
+{
+  "name": "between-us",
+  "version": "1.0.0",
+  "description": "Between Us — Stationery Atelier",
+  "scripts": {
+    "dev": "npx serve .",
+    "start": "npx serve ."
+  }
+}

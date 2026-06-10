@@ -43,9 +43,10 @@ const decompressDoc = (comp) => {
 };
 
 function App() {
-  // navigation + theme
-  const [activeNav, setActiveNav] = useState("drafts");
+  // theme + responsive side-panels
   const [theme, setTheme] = useState("day");
+  const [leftOpen, setLeftOpen] = useState(false);
+  const [rightOpen, setRightOpen] = useState(false);
 
   // the whole letter lives in one object
   const [doc, setDoc] = useState(() => normalizeDoc(DEFAULT_DOC, newId()));
@@ -181,8 +182,9 @@ function App() {
     fresh.body = "";
     fresh.greeting = "My Dearest,";
     applyDoc(fresh);
-    setActiveNav("drafts");
     setShareUrl(null);
+    setLeftOpen(false);
+    setRightOpen(false);
   };
 
   // ---- share ----
@@ -225,30 +227,33 @@ function App() {
   };
 
   return (
-    <div className={theme === "evening" ? "evening" : ""}
-      style={{ display: "flex", height: "100vh", background: "var(--ivory)", color: "var(--charcoal)" }}>
-
-      <Sidebar
-        active={activeNav} setActive={setActiveNav}
-        theme={theme} setTheme={setTheme}
-        counts={counts}
-        onNew={newLetter}
-        onSettings={() => setActiveNav("settings")}
-      />
+    <div className={`app-container ${theme === "evening" ? "evening" : ""} ${leftOpen ? "left-open" : ""} ${rightOpen ? "right-open" : ""}`}>
+      {/* Backdrop for mobile drawer */}
+      {(leftOpen || rightOpen) && (
+        <div className="panel-backdrop" onClick={() => { setLeftOpen(false); setRightOpen(false); }} />
+      )}
 
       <MaterialPanel
         selPaper={doc.selPaper} setSelPaper={(v) => update({ selPaper: v })}
         selEnv={doc.selEnv} setSelEnv={(v) => update({ selEnv: v })}
         selSeal={doc.selSeal} setSelSeal={setSeal}
         selCover={doc.selCover} setSelCover={(v) => update({ selCover: v })}
+        onNew={newLetter}
+        theme={theme}
+        setTheme={setTheme}
+        onClose={() => setLeftOpen(false)}
       />
 
       {/* center column */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative" }}>
+      <div className="workspace-panel">
         <TopBar
           title={doc.title} setTitle={(v) => update({ title: v })}
           onSaveDraft={() => saveLetter({ status: "draft" })}
           onPreview={openPreview}
+          onToggleLeft={() => { setLeftOpen(!leftOpen); setRightOpen(false); }}
+          onToggleRight={() => { setRightOpen(!rightOpen); setLeftOpen(false); }}
+          leftActive={leftOpen}
+          rightActive={rightOpen}
         />
         <LetterCanvas
           docKey={doc.id}
@@ -269,6 +274,7 @@ function App() {
         align={doc.align} setAlign={(v) => update({ align: v })}
         ink={doc.ink} setInk={(v) => update({ ink: v })}
         margins={doc.margins} setMargins={(v) => update({ margins: v })}
+        onClose={() => setRightOpen(false)}
       />
 
       <PreviewOverlay

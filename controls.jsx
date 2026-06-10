@@ -100,14 +100,28 @@ function FontDropdown({ value, onChange }) {
 function ControlsPanel(props) {
   const {
     font, setFont, fontSize, setFontSize, lineHeight, setLineHeight,
-    align, setAlign, ink, setInk, margins, setMargins,
+    align, setAlign, ink, setInk, margins, setMargins, onClose,
   } = props;
 
   return (
-    <aside className="rise" style={{
-      width: 280, flexShrink: 0, height: "100%", overflowY: "auto",
-      background: "var(--cream)", borderLeft: "1px solid var(--hairline)",
-    }}>
+    <aside className="controls-panel">
+      <div className="mobile-only" style={{
+        padding: "18px 20px 8px", borderBottom: "1px solid var(--hairline)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "var(--cream)"
+      }}>
+        <span className="eyebrow" style={{ fontSize: 12 }}>Customization</span>
+        <button className="t200" onClick={onClose}
+          style={{
+            background: "transparent", border: "none", cursor: "pointer", color: "var(--brown)",
+            display: "flex", padding: 4
+          }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
       <CtrlBlock title="Fonts">
         <FontDropdown value={font} onChange={setFont} />
       </CtrlBlock>

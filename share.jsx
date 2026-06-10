@@ -14,7 +14,6 @@ const SH_MARGIN = {
 
 /* read-only render of the letter — mirrors the editor sheet */
 function StaticLetter({ doc }) {
-  const m = SH_MARGIN[doc.margins] || SH_MARGIN.normal;
   const paperCls = (PAPERS.find((p) => p.id === doc.selPaper) || {}).cls || "pp-smooth";
   const sealObj = SEALS.find((s) => s.id === doc.selSeal);
   const fam = (FONTS.find((f) => f.id === doc.font) || FONTS[0]).family;
@@ -33,7 +32,7 @@ function StaticLetter({ doc }) {
             position: "absolute", bottom: 26, right: 34, width: 58, height: 58, zIndex: 5,
           }} />
         )}
-        <div className="paper-content" style={{ padding: `${m.px}px ${m.r}px ${Math.max(m.px, 90)}px ${m.l}px`, minHeight: 560 }}>
+        <div className="paper-content" data-margins={doc.margins}>
           <div style={{ fontFamily: fam, fontSize: doc.fontSize, lineHeight: SH_LH[doc.lineHeight], textAlign: doc.align, color: inkVal }}>
             <div style={{ marginBottom: "0.7em", fontStyle: italicGreeting ? "italic" : "normal" }}
                  dangerouslySetInnerHTML={{ __html: doc.greeting || "" }} />

@@ -149,7 +149,6 @@ function Envelope({ doc, phase, pressing, onOpen }) {
    The letter face — read-only, reveals sequentially
    ============================================================ */
 function LetterFace({ doc, phase, reveal, showFootSeal }) {
-  const m = R_MARGIN[doc.margins] || R_MARGIN.normal;
   const paperCls = (PAPERS.find((p) => p.id === doc.selPaper) || {}).cls || "pp-smooth";
   const fam = (FONTS.find((f) => f.id === doc.font) || FONTS[0]).family;
   const inkVal = (INKS.find((c) => c.id === doc.ink) || INKS[0]).value;
@@ -165,10 +164,7 @@ function LetterFace({ doc, phase, reveal, showFootSeal }) {
           <span className="paper-vignette" />
         </div>
 
-        <div className="paper-content" style={{
-          padding: `${m.px}px ${m.r}px ${Math.max(m.px, 84)}px ${m.l}px`,
-          minHeight: 520,
-        }}>
+        <div className="paper-content" data-margins={doc.margins}>
           <div style={{ fontFamily: fam, fontSize: doc.fontSize, lineHeight: R_LH[doc.lineHeight], textAlign: doc.align, color: inkVal }}>
             <div className={cls("greeting")} style={{ marginBottom: "0.7em", fontStyle: italicGreeting ? "italic" : "normal" }}
                  dangerouslySetInnerHTML={{ __html: doc.greeting || "" }} />

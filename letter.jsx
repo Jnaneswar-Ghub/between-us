@@ -39,7 +39,7 @@ function Editable({ html, onChange, className = "", style, placeholder, single, 
   );
 }
 
-function TopBar({ title, setTitle, onSaveDraft, onPreview }) {
+function TopBar({ title, setTitle, onSaveDraft, onPreview, onToggleLeft, onToggleRight, leftActive, rightActive }) {
   const [editing, setEditing] = useStateL(false);
   const [saved, setSaved] = useStateL(false);
   const inputRef = useRefL(null);
@@ -58,6 +58,21 @@ function TopBar({ title, setTitle, onSaveDraft, onPreview }) {
       padding: "16px 28px", borderBottom: "1px solid var(--hairline)",
       background: "var(--ivory)", flexShrink: 0,
     }}>
+      {/* Mobile left panel toggle */}
+      <button className="mobile-toggle-btn left-toggle t200" onClick={onToggleLeft}
+        style={{
+          display: "none", padding: 8, background: "transparent", border: "1px solid var(--hairline)",
+          borderRadius: 7, cursor: "pointer", color: leftActive ? "var(--brown)" : "rgba(44,44,44,0.55)",
+          alignItems: "center", justifyContent: "center"
+        }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.35338 19.5 5.28913 20 4.5 20C3.5 20 2 19 2 12" />
+          <circle cx="7.5" cy="10.5" r="1.2" fill="currentColor"/>
+          <circle cx="11.5" cy="7.5" r="1.2" fill="currentColor"/>
+          <circle cx="16.5" cy="9.5" r="1.2" fill="currentColor"/>
+        </svg>
+      </button>
+
       <div style={{ flex: 1, minWidth: 0 }}>
         {editing ? (
           <input ref={inputRef} value={title} autoFocus
@@ -82,7 +97,7 @@ function TopBar({ title, setTitle, onSaveDraft, onPreview }) {
         )}
       </div>
 
-      <button onClick={doSave} className="t200"
+      <button onClick={doSave} className="t200 save-draft-btn"
         style={{
           display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
           background: "transparent", border: "none", cursor: "pointer",
@@ -93,23 +108,43 @@ function TopBar({ title, setTitle, onSaveDraft, onPreview }) {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <path className="check-path" d="M20 6L9 17l-5-5" />
             </svg>
-            Saved
+            <span className="desktop-only" style={{ marginLeft: 6 }}>Saved</span>
           </>
         ) : (
-          <>Save Draft</>
+          <>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle" }}>
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+              <path d="M17 21v-8H7v8" />
+            </svg>
+            <span className="desktop-only" style={{ marginLeft: 6 }}>Save</span>
+          </>
         )}
       </button>
 
-      <button onClick={onPreview} className="t200 lift"
+      {/* Mobile right panel toggle */}
+      <button className="mobile-toggle-btn right-toggle t200" onClick={onToggleRight}
+        style={{
+          display: "none", padding: 8, background: "transparent", border: "1px solid var(--hairline)",
+          borderRadius: 7, cursor: "pointer", color: rightActive ? "var(--brown)" : "rgba(44,44,44,0.55)",
+          alignItems: "center", justifyContent: "center"
+        }}>
+        <IconType size={18} />
+      </button>
+
+      <button onClick={onPreview} className="t200 lift preview-btn"
         style={{
           padding: "8px 18px", background: "var(--charcoal)", color: "var(--ivory)",
           border: "none", borderRadius: 7, cursor: "pointer", fontSize: 13.5, fontWeight: 500,
-          boxShadow: "0 2px 8px rgba(44,44,44,0.22)",
+          boxShadow: "0 2px 8px rgba(44,44,44,0.22)", display: "flex", alignItems: "center", gap: 6
         }}>
-        Preview
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mobile-only-inline">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <span className="desktop-only">Preview</span>
       </button>
 
-      <button data-tip="More" className="t200 tip"
+      <button data-tip="More" className="t200 tip more-btn"
         style={{
           display: "flex", padding: 8, background: "transparent", border: "1px solid var(--hairline)",
           borderRadius: 7, cursor: "pointer", color: "rgba(44,44,44,0.55)",
@@ -168,22 +203,18 @@ function LetterCanvas(props) {
     greeting, body, signoff, signature, onField,
   } = props;
 
-  const m = MARGIN_MAP[margins] || MARGIN_MAP.normal;
   const sealObj = SEALS.find((s) => s.id === seal);
   const italicGreeting = font === "playfair" || font === "cormorant";
 
   return (
-    <div className="desk" style={{ flex: 1, position: "relative", overflow: "auto" }}>
+    <div className="desk" style={{ flex: 1, position: "relative", overflowX: "hidden", overflowY: "auto" }}>
       {/* botanical desk props */}
       <BotanicalStem className="sway" style={{ position: "absolute", top: -24, left: 8, opacity: 0.85, "--rot": "-4deg", pointerEvents: "none", zIndex: 1 }} />
       <BotanicalSprig className="sway" style={{ position: "absolute", bottom: -10, right: 18, opacity: 0.8, "--rot": "5deg", pointerEvents: "none", zIndex: 1 }} />
       <BotanicalLeaf className="sway" style={{ position: "absolute", bottom: 40, left: -34, opacity: 0.7, "--rot": "-2deg", pointerEvents: "none", zIndex: 1 }} />
 
       {/* centering frame */}
-      <div style={{
-        minHeight: "100%", display: "flex", alignItems: "flex-start", justifyContent: "center",
-        padding: "56px 40px 130px",
-      }}>
+      <div className="desk-centering-frame">
         <div className="paper-stack" style={{ width: "100%", maxWidth: 620 }}>
           <div className="paper" style={{ borderRadius: 3, position: "relative" }}>
             <div className={`paper-sheet ${paperCls}`}>
@@ -198,10 +229,7 @@ function LetterCanvas(props) {
               }} />
             )}
 
-            <div className="paper-content" style={{
-              padding: `${m.px}px ${m.r}px ${Math.max(m.px, 90)}px ${m.l}px`,
-              minHeight: 720,
-            }}>
+            <div className="paper-content" data-margins={margins}>
               <div style={{
                 fontFamily: FONTS.find((f) => f.id === font).family,
                 fontSize: fontSize,
