@@ -1,0 +1,526 @@
+/* ============================================================
+   Between Us — The Recipient Experience
+   A sealed letter, opened. Cinematic. No chrome.
+   Everything animates via CSS keyframes / transitions driven
+   by [data-phase] on .stage. Easing is always --ease.
+   ============================================================ */
+
+:root {
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --dark-bg: #1E1B17;
+  --reading-bg: #EDE8E3;
+
+  --env-w: 380px;
+  --env-h: 260px;
+  --flap-h: 138px;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--dark-bg);
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+#root { height: 100vh; }
+
+@media (max-width: 640px) {
+  :root { --env-w: 280px; --env-h: 192px; --flap-h: 102px; }
+}
+
+/* ============================================================
+   STAGE — full viewport, holds everything, owns the bg shift
+   ============================================================ */
+.stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dark-bg);
+  transition: background-color 1000ms var(--ease);
+  overflow: hidden;
+  perspective: 1100px;
+}
+.stage[data-phase="floating"],
+.stage[data-phase="reading"] {
+  background-color: var(--reading-bg);
+}
+
+/* grain overlay — ~3% */
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* warm light bloom behind the envelope (dark phases only) */
+.bloom {
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(224, 188, 130, 0.16), rgba(224,188,130,0.05) 38%, transparent 66%);
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 900ms var(--ease);
+  will-change: opacity;
+}
+.stage[data-phase="floating"] .bloom,
+.stage[data-phase="reading"] .bloom { opacity: 0; }
+
+/* ============================================================
+   ENVELOPE — layered divs, slight -2deg "placed" tilt
+   ============================================================ */
+.env-scene {
+  position: absolute;
+  width: var(--env-w);
+  height: var(--env-h);
+  transform: rotate(-2deg);
+  transform-style: preserve-3d;
+  z-index: 2;
+  animation: breathe 4s ease-in-out infinite;
+  transition: transform 1000ms var(--ease), opacity 900ms var(--ease);
+  will-change: transform, opacity;
+}
+/* breathing stops once we begin opening */
+.stage[data-phase="breaking"] .env-scene,
+.stage[data-phase="flap"] .env-scene,
+.stage[data-phase="rising"] .env-scene,
+.stage[data-phase="floating"] .env-scene,
+.stage[data-phase="reading"] .env-scene { animation: none; }
+
+/* envelope served its purpose — sinks away */
+.stage[data-phase="floating"] .env-scene,
+.stage[data-phase="reading"] .env-scene {
+  transform: rotate(-2deg) translateY(120px) scale(0.97);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: rotate(-2deg) scale(1); }
+  50%      { transform: rotate(-2deg) scale(1.006); }
+}
+
+/* big soft warm shadow beneath */
+.env-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -46px;
+  width: 86%;
+  height: 60px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0,0,0,0.5), transparent 70%);
+  filter: blur(14px);
+  z-index: -1;
+}
+
+/* shared paper-texture wash on envelope faces */
+.env-paper {
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(0,0,0,0.05));
+}
+
+/* back panel (the inside-back you see through the mouth) */
+.env-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: var(--env-back-c, #b89a6e);
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.22);
+  z-index: 1;
+}
+
+/* the front pocket — covers the lower portion, letter slides from behind */
+.env-front {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 38%;
+  border-radius: 0 0 6px 6px;
+  background: var(--env-front-c, #c9ae85);
+  z-index: 4;
+  box-shadow: 0 -1px 0 rgba(255,255,255,0.12) inset, 0 -10px 22px rgba(0,0,0,0.16);
+  clip-path: polygon(0 14%, 50% 0, 100% 14%, 100% 100%, 0 100%);
+}
+/* folded side-flap seams on the front pocket */
+.env-front::before,
+.env-front::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 52%;
+  height: 100%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.05));
+}
+.env-front::before { left: 0;  clip-path: polygon(0 16%, 100% 100%, 0 100%); }
+.env-front::after  { right: 0; clip-path: polygon(100% 16%, 100% 100%, 0 100%); background: linear-gradient(transparent, rgba(0,0,0,0.08)); }
+
+/* the mouth — subtle dark opening line */
+.env-mouth {
+  position: absolute;
+  left: 0; right: 0;
+  top: 38%;
+  height: 2px;
+  background: rgba(0,0,0,0.18);
+  z-index: 3;
+  clip-path: polygon(0 0, 50% 90%, 100% 0, 100% 100%, 0 100%);
+}
+
+/* ---- THE FLAP — hinged at the top edge, two-faced, folds back to open ---- */
+.env-flap {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: var(--flap-h);
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  transform-style: preserve-3d;
+  transition: transform 800ms var(--ease), z-index 0s 400ms;
+  z-index: 5;
+  will-change: transform;
+}
+.flap-face {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+/* exterior — the face we see while sealed */
+.flap-face-front {
+  background: var(--env-flap-c, #b89a6e);
+  box-shadow: inset 0 6px 14px rgba(255,255,255,0.08), 0 6px 10px rgba(0,0,0,0.12);
+  opacity: 1;
+  transition: opacity 160ms var(--ease);
+}
+/* interior — only seen once the flap folds back */
+.flap-face-back {
+  transform: rotateX(180deg);
+  background: var(--env-back-c, #8f7550);
+  box-shadow: inset 0 0 44px rgba(0,0,0,0.34);
+  opacity: 0;
+  transition: opacity 160ms var(--ease);
+}
+/* swap faces at the flip's edge-on midpoint (~400ms of the 800ms flip) */
+.stage[data-phase="flap"] .flap-face-front,
+.stage[data-phase="rising"] .flap-face-front,
+.stage[data-phase="floating"] .flap-face-front,
+.stage[data-phase="reading"] .flap-face-front { opacity: 0; transition-delay: 360ms; }
+.stage[data-phase="flap"] .flap-face-back,
+.stage[data-phase="rising"] .flap-face-back,
+.stage[data-phase="floating"] .flap-face-back,
+.stage[data-phase="reading"] .flap-face-back { opacity: 1; transition-delay: 360ms; }
+/* repeating botanical lining on the interior */
+.env-flap-lining {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  opacity: 0.55;
+  background-repeat: repeat;
+  background-size: 34px 34px;
+}
+/* once any opening begins, fold the flap back & drop it behind */
+.stage[data-phase="flap"] .env-flap,
+.stage[data-phase="rising"] .env-flap,
+.stage[data-phase="floating"] .env-flap,
+.stage[data-phase="reading"] .env-flap {
+  transform: rotateX(-170deg);
+  z-index: 0;
+}
+
+/* ============================================================
+   WAX SEAL — sits on the flap apex (centre of envelope)
+   ============================================================ */
+.seal-wrap {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--flap-h) - 28px);
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, 0);
+  z-index: 7;
+  cursor: pointer;
+  transition: opacity 500ms var(--ease);
+  will-change: transform, opacity;
+}
+.seal-wrap.sealed:hover { transform: translate(-50%, 0) scale(1.04); }
+.seal-wrap .seal-initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 26px;
+  color: #F3E6D2;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+  pointer-events: none;
+  z-index: 2;
+}
+/* the press-in just before cracking */
+.seal-wrap.pressing { animation: seal-press-in 90ms var(--ease) forwards; }
+@keyframes seal-press-in { to { transform: translate(-50%, 0) scale(1.06); } }
+
+/* two halves of the broken seal */
+.seal-half {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0;
+}
+.seal-half.lh { clip-path: polygon(0 0, 52% 0, 48% 100%, 0 100%); }
+.seal-half.rh { clip-path: polygon(52% 0, 100% 0, 100% 100%, 48% 100%); }
+.stage[data-phase="breaking"] .seal-half.lh,
+.stage[data-phase="flap"] .seal-half.lh    { animation: crack-left 700ms var(--ease) forwards; }
+.stage[data-phase="breaking"] .seal-half.rh,
+.stage[data-phase="flap"] .seal-half.rh    { animation: crack-right 700ms var(--ease) forwards; }
+@keyframes crack-left {
+  0%   { opacity: 1; transform: translate(0,0) rotate(0); }
+  100% { opacity: 0; transform: translate(-26px, 30px) rotate(-15deg); }
+}
+@keyframes crack-right {
+  0%   { opacity: 1; transform: translate(0,0) rotate(0); }
+  100% { opacity: 0; transform: translate(26px, 30px) rotate(15deg); }
+}
+/* hide intact seal + initial once breaking */
+.stage[data-phase="breaking"] .seal-wrap .wax,
+.stage[data-phase="breaking"] .seal-wrap .seal-initial,
+.stage[data-phase="flap"] .seal-wrap .wax,
+.stage[data-phase="flap"] .seal-wrap .seal-initial { opacity: 0; transition: opacity 200ms var(--ease); }
+.stage[data-phase="rising"] .seal-wrap,
+.stage[data-phase="floating"] .seal-wrap,
+.stage[data-phase="reading"] .seal-wrap { opacity: 0; pointer-events: none; }
+
+/* ---- particle shards scattering from the seal ---- */
+.shards { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+.shard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  opacity: 0;
+}
+.stage[data-phase="breaking"] .shard,
+.stage[data-phase="flap"] .shard { animation-duration: 720ms; animation-timing-function: var(--ease); animation-fill-mode: forwards; }
+.shard:nth-child(1){ animation-name: sh0; }
+.shard:nth-child(2){ animation-name: sh1; width:4px;height:4px;}
+.shard:nth-child(3){ animation-name: sh2; }
+.shard:nth-child(4){ animation-name: sh3; width:3px;height:3px;}
+.shard:nth-child(5){ animation-name: sh4; }
+.shard:nth-child(6){ animation-name: sh5; width:4px;height:4px;}
+.shard:nth-child(7){ animation-name: sh6; width:3px;height:3px;}
+.shard:nth-child(8){ animation-name: sh7; }
+@keyframes sh0 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(-42px,-30px) scale(0.4)} }
+@keyframes sh1 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(38px,-36px) scale(0.4)} }
+@keyframes sh2 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(-50px,12px) scale(0.4)} }
+@keyframes sh3 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(54px,8px) scale(0.4)} }
+@keyframes sh4 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(-30px,40px) scale(0.4)} }
+@keyframes sh5 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(28px,46px) scale(0.4)} }
+@keyframes sh6 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(12px,-48px) scale(0.4)} }
+@keyframes sh7 { 0%{opacity:1;transform:translate(0,0)} 100%{opacity:0;transform:translate(-12px,-50px) scale(0.4)} }
+
+/* ============================================================
+   THE LETTER — one element, transformed through every phase.
+   Centred at viewport centre; reading position = its rest pose.
+   ============================================================ */
+.letter-card {
+  position: absolute;
+  width: min(600px, calc(100vw - 40px));
+  z-index: 3;                      /* behind the front pocket while inside */
+  transform-origin: center center;
+  transform: translateY(64px) scale(0.46);
+  opacity: 0;
+  transition:
+    transform 1100ms var(--ease),
+    opacity 600ms var(--ease),
+    filter 900ms var(--ease);
+  will-change: transform, opacity;
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,0.4));
+  pointer-events: none;
+}
+/* sealed / breaking / flap — tucked low inside the envelope */
+.stage[data-phase="sealed"] .letter-card,
+.stage[data-phase="breaking"] .letter-card { opacity: 0; transform: translateY(64px) scale(0.46); }
+.stage[data-phase="flap"] .letter-card     { opacity: 1; transform: translateY(40px) scale(0.5); }
+
+/* rising — slides up & out of the mouth, grows a touch */
+.stage[data-phase="rising"] .letter-card {
+  opacity: 1;
+  transform: translateY(-200px) scale(0.62) rotate(0.4deg);
+  z-index: 9;
+  filter: drop-shadow(0 26px 40px rgba(0,0,0,0.45));
+}
+/* floating + reading — settles to viewport centre, full size */
+.stage[data-phase="floating"] .letter-card,
+.stage[data-phase="reading"] .letter-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  z-index: 9;
+  filter: drop-shadow(0 18px 40px rgba(94, 74, 48, 0.26));
+}
+/* reading — allow scroll for long letters */
+.stage[data-phase="reading"] .letter-card {
+  max-height: 86vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   TEXT REVEAL — sequential fade-ins on the letter face
+   ============================================================ */
+.reveal { opacity: 0; transform: translateY(8px); }
+.reveal.in { opacity: 1; transform: translateY(0); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+.reveal.greeting.in { transition-duration: 500ms; }
+.reveal.body.in     { transition-duration: 800ms; }
+.reveal.signoff.in  { transition-duration: 500ms; }
+
+/* the decorative foot-seal on the read letter */
+.foot-seal { animation: foot-seal 460ms var(--ease) both; }
+@keyframes foot-seal {
+  0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(1.1) rotate(-2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* ============================================================
+   AMBIENT CAPTIONS (dark phases)
+   ============================================================ */
+.captions {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--env-h) / 2 + 70px);
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 5;
+  transition: opacity 600ms var(--ease);
+  pointer-events: none;
+}
+.stage[data-phase="breaking"] .captions,
+.stage[data-phase="flap"] .captions,
+.stage[data-phase="rising"] .captions,
+.stage[data-phase="floating"] .captions,
+.stage[data-phase="reading"] .captions { opacity: 0; }
+
+.cap-waiting {
+  font-family: 'Dancing Script', cursive;
+  font-size: 21px;
+  color: rgba(243, 230, 210, 0.62);
+  margin: 0 0 14px;
+  white-space: nowrap;
+}
+.cap-hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(243, 230, 210, 0.5);
+  margin: 0;
+  white-space: nowrap;
+  animation: pulse-hint 2s ease-in-out infinite;
+}
+@keyframes pulse-hint { 0%,100% { opacity: 0.4; } 50% { opacity: 0.78; } }
+
+.botanical-prop {
+  position: absolute;
+  left: calc(50% - var(--env-w) / 2 - 36px);
+  top: calc(50% + 18px);
+  z-index: 1;
+  opacity: 0.5;
+  transition: opacity 700ms var(--ease);
+  pointer-events: none;
+}
+.stage[data-phase="floating"] .botanical-prop,
+.stage[data-phase="reading"] .botanical-prop { opacity: 0; }
+@media (max-width: 640px){ .botanical-prop { display: none; } }
+
+/* ============================================================
+   FINALE — action bar + watermark
+   ============================================================ */
+.action-bar {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%) translateY(14px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 80;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms var(--ease), transform 600ms var(--ease);
+}
+.action-bar.in { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
+.btn-writeback {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 99px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #F8F2E9;
+  background: #8B7355;
+  box-shadow: 0 4px 16px rgba(94,74,48,0.28);
+  transition: transform 200ms var(--ease), background 200ms var(--ease);
+}
+.btn-writeback:hover { transform: translateY(-2px); background: #6F5A40; }
+
+.btn-mute {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(139,115,85,0.3);
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  color: #6F5A40;
+  font-size: 16px;
+  transition: transform 200ms var(--ease), background 200ms var(--ease);
+}
+.btn-mute:hover { transform: translateY(-2px); background: #fff; }
+.btn-mute.muted { color: rgba(111,90,64,0.4); }
+
+.watermark {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Dancing Script', cursive;
+  font-size: 12px;
+  color: rgba(94, 74, 48, 0.3);
+  z-index: 70;
+  opacity: 0;
+  transition: opacity 800ms var(--ease);
+  pointer-events: none;
+}
+.watermark.in { opacity: 1; }
+
+/* loading whisper before the envelope lands */
+.boot {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--dark-bg); z-index: 100;
+  color: rgba(243,230,210,0.5); font-family: 'Dancing Script', cursive; font-size: 20px;
+  transition: opacity 500ms var(--ease);
+}
+.boot.gone { opacity: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .env-scene { animation: none; }
+  .cap-hint { animation: none; opacity: 0.6; }
+}

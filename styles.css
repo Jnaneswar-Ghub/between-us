@@ -1,0 +1,317 @@
+/* ============================================================
+   Between Us — Stationery Atelier
+   Warm, analog, premium. No SaaS. No cool/blue shadows.
+   ============================================================ */
+
+:root {
+  --ivory: #FAF6F1;
+  --linen: #EDE8E3;
+  --cream: #F5F0EB;
+  --parchment: #E8E0D6;
+  --charcoal: #2C2C2C;
+  --sage: #8B9A82;
+  --rose: #C4A68A;
+  --brown: #8B7355;
+  --brown-deep: #6F5A40;
+  --hairline: rgba(139, 115, 85, 0.16);
+  --paper: #FEFCF8;
+
+  /* warm shadow tokens — never blue */
+  --sh-soft: 0 1px 2px rgba(94, 74, 48, 0.06), 0 4px 14px rgba(94, 74, 48, 0.08);
+  --sh-lift: 0 4px 10px rgba(94, 74, 48, 0.10), 0 14px 34px rgba(94, 74, 48, 0.14);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--ivory);
+  color: var(--charcoal);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root { height: 100vh; }
+
+/* thin warm scrollbars */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 115, 85, 0.22);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(139, 115, 85, 0.38); background-clip: padding-box; }
+
+/* ---- shared transitions ---- */
+.t200 { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brown);
+  font-weight: 600;
+}
+
+.script { font-family: 'Dancing Script', cursive; }
+
+/* ============================================================
+   THE DESK — linen surface beneath the letter
+   ============================================================ */
+.desk {
+  background-color: #E7E1DA;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255, 252, 248, 0.55), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   THE LETTER — the centerpiece.
+   Real-paper feel: warm white, layered warm shadows,
+   deckled edges (SVG filter), grain + fiber overlays.
+   ============================================================ */
+.paper-stack {
+  position: relative;
+}
+
+/* faint stacked sheets behind, for tactile depth */
+.paper-stack::before,
+.paper-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #FBF7F0;
+  border-radius: 3px;
+  z-index: 0;
+}
+.paper-stack::before { transform: rotate(-0.5deg) translate(6px, 7px); box-shadow: var(--sh-soft); opacity: 0.7; }
+.paper-stack::after  { transform: rotate(0.7deg) translate(-5px, 4px); box-shadow: var(--sh-soft); opacity: 0.55; }
+
+/* the sizing box — height comes from .paper-content; NO filter here */
+.paper {
+  position: relative;
+  z-index: 1;
+}
+
+/* the torn, coloured sheet — deckle filter lives HERE so it tears the
+   paper edges WITHOUT distorting the text in .paper-content */
+.paper-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--paper);
+  border-radius: 3px;
+  filter: url(#deckle);
+  box-shadow:
+    0 1px 1px rgba(94, 74, 48, 0.05),
+    0 8px 18px rgba(94, 74, 48, 0.10),
+    0 26px 50px rgba(94, 74, 48, 0.16),
+    inset 0 0 70px rgba(139, 115, 85, 0.05);
+  transition: background-color 0.4s ease, background-image 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* grain + fiber overlays — children of the sheet, so they tear with it */
+.paper-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(139,115,85,0.025) 0px, rgba(139,115,85,0.025) 1px, transparent 1px, transparent 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+/* soft vignette darkening at the very edges of the sheet */
+.paper-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(139,115,85,0.06);
+  background:
+    radial-gradient(120% 120% at 50% 50%, transparent 72%, rgba(139,115,85,0.07) 100%);
+}
+
+.paper-content { position: relative; z-index: 2; }
+
+/* ---- paper variants applied via data-paper ---- */
+.pp-smooth   { background-color: #FEFCF8; }
+.pp-cotton   { background-color: #FDF9F3;
+  background-image: radial-gradient(rgba(139,115,85,0.05) 0.6px, transparent 0.6px);
+  background-size: 7px 7px; }
+.pp-linen    { background-color: #FCF8F1;
+  background-image: repeating-linear-gradient(0deg, rgba(139,115,85,0.04) 0 1px, transparent 1px 4px),
+                    repeating-linear-gradient(90deg, rgba(139,115,85,0.025) 0 1px, transparent 1px 4px); }
+.pp-handmade { background-color: #FBF4E9;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23h)' opacity='0.10'/%3E%3C/svg%3E"); }
+.pp-washi    { background-color: #FBFBF9; }
+.pp-vintage  { background-color: #F3E7CF;
+  background-image: radial-gradient(ellipse 80% 80% at 50% 50%, #F6ECD8 30%, #E9D6B4 100%); }
+.pp-kraft    { background-color: #D8C3A0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23k)' opacity='0.12'/%3E%3C/svg%3E"); }
+.pp-blush    { background-color: #F8EDE9; }
+.pp-sage     { background-color: #EEF0E8; }
+.pp-ledger   { background-color: #FCF9F2;
+  background-image: repeating-linear-gradient(0deg, transparent 0 31px, rgba(139,154,130,0.18) 31px 32px); }
+.pp-grid     { background-color: #FCFAF4;
+  background-image: repeating-linear-gradient(0deg, rgba(139,115,85,0.06) 0 1px, transparent 1px 22px),
+                    repeating-linear-gradient(90deg, rgba(139,115,85,0.06) 0 1px, transparent 1px 22px); }
+.pp-marble   { background-color: #FAF6EF;
+  background-image: radial-gradient(circle at 20% 30%, rgba(196,166,138,0.10), transparent 40%),
+                    radial-gradient(circle at 75% 70%, rgba(139,154,130,0.08), transparent 45%); }
+
+/* ---- the editable writing surface ---- */
+.ed {
+  outline: none;
+  caret-color: var(--brown);
+  border-radius: 5px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.ed:hover { background: rgba(139,115,85,0.045); }
+.ed:focus { background: rgba(139,115,85,0.07); box-shadow: 0 0 0 4px rgba(139,115,85,0.07); }
+.ed:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(44,44,44,0.30);
+  font-style: italic;
+  pointer-events: none;
+}
+.letter-body p { margin: 0 0 0.85em 0; }
+.letter-body p:last-child { margin-bottom: 0; }
+
+/* ============================================================
+   FROSTED GLASS — floating toolbar
+   ============================================================ */
+.frost {
+  background: rgba(250, 246, 241, 0.62);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 6px 24px rgba(94, 74, 48, 0.16), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* ============================================================
+   WAX SEALS — radial gradient + box-shadow for real wax
+   ============================================================ */
+.wax {
+  position: relative;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,0.35),
+    inset 0 -4px 8px rgba(0,0,0,0.4),
+    0 2px 5px rgba(94,74,48,0.35);
+}
+.wax::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.18);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.25);
+}
+.wax-red    { background: radial-gradient(circle at 38% 32%, #C0492E, #8B2500 65%, #5e1808 100%); }
+.wax-burg   { background: radial-gradient(circle at 38% 32%, #8a3434, #5C1A1A 65%, #380f0f 100%); }
+.wax-gold   { background: radial-gradient(circle at 38% 32%, #c2a36a, #8B7355 60%, #5e4c34 100%); }
+.wax-silver { background: radial-gradient(circle at 38% 32%, #d8d8d8, #9A9A9A 60%, #6e6e6e 100%); }
+
+/* seal landing on the letter */
+@keyframes seal-press {
+  0%   { transform: scale(0) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(1.12) rotate(-3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.seal-press { animation: seal-press 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* ============================================================
+   GENERIC INTERACTION HELPERS
+   ============================================================ */
+.lift:hover { transform: translateY(-2px); }
+
+.swatch {
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.swatch:hover { transform: translateY(-2px); box-shadow: var(--sh-lift); }
+
+/* accordion */
+.acc-body {
+  overflow: hidden;
+  transition: max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+}
+
+/* nav active dot slide */
+.nav-dot {
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+}
+
+/* tooltip */
+.tip { position: relative; }
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--charcoal);
+  color: var(--ivory);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 50;
+}
+.tip:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* checkmark draw for Save Draft */
+@keyframes check-draw {
+  to { stroke-dashoffset: 0; }
+}
+.check-path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: check-draw 0.32s ease forwards;
+}
+
+/* fade/slide-in for panels mounting */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.rise { animation: rise 0.4s ease both; }
+
+/* botanical props float subtly */
+@keyframes sway {
+  0%, 100% { transform: rotate(var(--rot, 0deg)); }
+  50%      { transform: rotate(calc(var(--rot, 0deg) + 1.2deg)); }
+}
+.sway { animation: sway 7s ease-in-out infinite; transform-origin: center bottom; }
+
+/* ===================== DARK (evening) MODE ===================== */
+.evening {
+  --ivory: #211c17;
+  --linen: #2a241e;
+  --cream: #2d2620;
+  --parchment: #352d25;
+  --charcoal: #ECE3D7;
+  --hairline: rgba(196,166,138,0.18);
+}
+.evening .desk {
+  background-color: #1a1611;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 50% 30%, rgba(196,166,138,0.10), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+.evening .frost {
+  background: rgba(45, 38, 32, 0.62);
+  border: 1px solid rgba(196,166,138,0.18);
+}
